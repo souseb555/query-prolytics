@@ -17,7 +17,7 @@ class AgentConfig(BaseModel):
     """Configuration for the agent."""
     name: str = "LLM-Agent"
     debug: bool = False
-    llm_config: Optional[LLMConfig] = OpenAIGPTConfig()
+    llm: Optional[LLMConfig] = OpenAIGPTConfig()
     vecdb_config: Optional[VectorStoreConfig] = None
 
 class Agent(ABC):
@@ -25,18 +25,10 @@ class Agent(ABC):
 
     def __init__(self, config: AgentConfig):
         self.config = config
-        self.llm = self._init_llm(config.llm_config)
+        self.llm = LanguageModel.create(config.llm)
         self.vecdb = self._init_vecdb(config.vecdb_config)
         if self.config.debug:
             logger.setLevel(logging.DEBUG)
-
-    def _init_llm(self, llm_config: Optional[LLMConfig]) -> Optional[LanguageModel]:
-        """Initialize the language model."""
-        if not llm_config:
-            logger.warning("No LLM configuration provided.")
-            return None
-        logger.info("Initializing LLM.")
-        return OpenAIGPT(config=llm_config)
 
     def _init_vecdb(self, vecdb_config: Optional[VectorStoreConfig]) -> Optional[VectorStore]:
         """Initialize the vector store."""
@@ -46,16 +38,16 @@ class Agent(ABC):
         logger.info("Initializing VectorStore.")
         return VectorStore(config=vecdb_config)
 
-    def handle_message(self, msg: str) -> str:
-        """Process a message and return a response."""
+    def respond(self, prompt: str) -> str:
+        """Generate a response for a given prompt."""
         if not self.llm:
-            logger.error("LLM not initialized. Cannot process message.")
-            return "LLM not available."
-        logger.info(f"Processing message: {msg}")
-        return "Response to: " + msg
+            logger.error("LLM not initialized. Cannot generate a response.")
+            return "Error: LLM not available."
 
-    def respond(self, msg: str) -> str:
-        """Generate a response for a given message."""
-        response = self.handle_message(msg)
-        logger.debug(f"Generated response: {response}")
-        return response
+        try:
+            response = self.llm.generate(prompt=prompt)
+            logger.debug(f"Generated response: {response}")
+            return response.get("message", "Error: No message in response.")
+        except Exception as e:
+            logger.error(f"Error generating response: {e}")
+            return "Error: Could not generate a response."
