@@ -1,10 +1,10 @@
 import logging
 import os
 
-from typing import Optional, Dict
+from typing import Optional, Dict, List, Union
 from enum import Enum
 
-from language_models.config.base import LLMConfig, LanguageModel
+from shared.infrastructure.language_models.config.base import LLMConfig, LanguageModel
 from openai import OpenAI, OpenAIError
 
 # Set up logging
@@ -49,26 +49,46 @@ class OpenAIGPT(LanguageModel):
         super().__init__(config)
         self.client = OpenAI(api_key=config.api_key)  # Initialize the client
 
-    def generate(self, prompt: str) -> Dict[str, str]:
+    def generate(self, prompt: Union[str, List[Dict[str, str]]], functions: Optional[List[Dict]] = None, function_call: Optional[Dict] = None) -> Dict[str, str]:
         """
         Generate a response for a given prompt.
         Args:
-            prompt: The input prompt for the model.
+            prompt: Either a string prompt or a list of message dictionaries.
+            functions: Optional list of function definitions for function calling.
+            function_call: Optional specification of function to call.
         Returns:
             A dictionary containing the response text and additional metadata.
         """
         try:
-            response = self.client.chat.completions.create(
-                model=self.config.chat_model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=self.config.temperature,
-                timeout=self.config.timeout,
-            )
+            # Build the request parameters
+            params = {
+                "model": self.config.chat_model,
+                "messages": [{"role": "user", "content": prompt}] if isinstance(prompt, str) else prompt,
+                "temperature": self.config.temperature,
+                "timeout": self.config.timeout,
+                "seed": self.config.seed,
+            }
+
+            # Add function calling parameters if provided
+            if functions:
+                params["functions"] = functions
+            if function_call:
+                params["function_call"] = function_call
+
+            response = self.client.chat.completions.create(**params)
+            
             if hasattr(response.choices[0], "message"):
-                message = response.choices[0].message.content.strip()
+                message = response.choices[0].message
+                # Handle function calls in response
+                if hasattr(message, "function_call"):
+                    return {
+                        "message": message.content,
+                        "function_call": message.function_call,
+                        "usage": getattr(response, "usage", {})
+                    }
+                return {"message": message.content.strip(), "usage": getattr(response, "usage", {})}
             else:
-                message = response.choices[0].text.strip()
-            return {"message": message, "usage": getattr(response, "usage", {})}
+                return {"message": response.choices[0].text.strip(), "usage": getattr(response, "usage", {})}
         except OpenAIError as e:
             logger.error(f"OpenAI API error: {e}")
             return {"message": "Error: OpenAI API error occurred."}

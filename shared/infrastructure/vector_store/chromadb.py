@@ -1,13 +1,16 @@
 import logging
 import chromadb
 from typing import List, Tuple, Sequence
-from vector_store.base import VectorStore, VectorStoreConfig, Document
+from shared.infrastructure.vector_store.base import VectorStore, VectorStoreConfig, Document
+from shared.infrastructure.embedding_models.base import EmbeddingModelsConfig
+from shared.infrastructure.embedding_models.models import OpenAIEmbeddingsConfig
 
 logger = logging.getLogger(__name__)
 
 class ChromaDBConfig(VectorStoreConfig):
     collection_name: str = "temp"
     storage_path: str = ".chroma/data"
+    embedding: EmbeddingModelsConfig = OpenAIEmbeddingsConfig()
     host: str = "127.0.0.1"
     port: int = 6379
 
@@ -43,3 +46,18 @@ class ChromaDB(VectorStore):
 
     def delete_collection(self, collection_name: str) -> None:
         logger.info(f"Deleting collection '{collection_name}'.")
+        
+    def query(self, query: str, top_k: int = 5) -> List[dict]:
+        """
+        Query the vector store for the top_k most similar documents to the input query.
+
+        Args:
+            query: The input query string.
+            top_k: The number of top similar documents to retrieve.
+
+        Returns:
+            A list of dictionaries, each containing 'text' and optional 'metadata'.
+        """
+        logger.info(f"Querying for top {top_k} similar documents for: {query}")
+        # This is a placeholder implementation. Replace with actual query logic.
+        return [{"text": f"Sample result {i}", "metadata": {"id": i}} for i in range(top_k)]

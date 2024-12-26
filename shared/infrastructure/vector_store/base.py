@@ -1,10 +1,13 @@
-from pydantic_v1 import BaseSettings
+from shared.infrastructure.pydantic_v1 import BaseSettings
 from abc import ABC
 
 
 import logging
 from abc import ABC, abstractmethod
 from typing import List, Optional, Tuple, Sequence
+
+from shared.infrastructure.embedding_models.models import OpenAIEmbeddingsConfig
+from shared.infrastructure.embedding_models.base import EmbeddingModelsConfig
 
 
 logger = logging.getLogger(__name__)
@@ -16,6 +19,7 @@ class VectorStoreConfig(BaseSettings):
     collection_name: str | None = "temp"
     replace_collection: bool = False  # replace collection if it already exists
     storage_path: str = ".chroma/data"
+    embedding: EmbeddingModelsConfig = OpenAIEmbeddingsConfig()
     batch_size: int = 200
     timeout: int = 60
     host: str = "127.0.0.1"
@@ -38,7 +42,7 @@ class VectorStore(ABC):
     @staticmethod
     def create(config: VectorStoreConfig) -> Optional["VectorStore"]:
         """Factory method to create a VectorStore instance."""
-        from vector_store.chromadb import ChromaDB, ChromaDBConfig
+        from shared.infrastructure.vector_store.chromadb import ChromaDB, ChromaDBConfig
         if isinstance(config, ChromaDBConfig):
             return ChromaDB(config)
 
@@ -63,6 +67,18 @@ class VectorStore(ABC):
     def create_collection(self, collection_name: str, replace: bool = False) -> None:
         """Create a collection."""
         pass
+    
+    def set_collection(self, collection_name: str, replace: bool = False) -> None:
+        """
+        Set the current collection to the given collection name.
+        Args:
+            collection_name (str): Name of the collection.
+            replace (bool, optional): Whether to replace the collection if it
+                already exists. Defaults to False.
+        """
+
+        self.config.collection_name = collection_name
+        self.config.replace_collection = replace
 
     @abstractmethod
     def delete_collection(self, collection_name: str) -> None:
