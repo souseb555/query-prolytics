@@ -17,5 +17,5 @@ def chunk_text(text: str, chunk_size: int, overlap: int) -> List[str]:
     while start < len(text):
         end = min(start + chunk_size, len(text))
         chunks.append(text[start:end])
-        start += chunk_size - overlap  # Move start forward, subtracting overlap
+        start += chunk_size - overlap
     return chunks

@@ -3,7 +3,7 @@ import time
 from typing import Callable, List
 from openai import OpenAI
 import tiktoken
-from .base import EmbeddingModelsConfig, EmbeddingModel
+from querylytics.shared.infrastructure.embedding_models.base import EmbeddingModelsConfig, EmbeddingModel
 from itertools import islice
 
 from typing import Iterable, Sequence, TypeVar

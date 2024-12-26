@@ -1,9 +1,9 @@
 from typing import List, Optional
-from shared.infrastructure.agent.base import Agent, AgentConfig
-from shared.infrastructure.vector_store.base import VectorStore, VectorStoreConfig
-from shared.infrastructure.vector_store.chromadb import ChromaDB, ChromaDBConfig
-from shared.infrastructure.embedding_models.models import OpenAIEmbeddingsConfig
-from shared.infrastructure.utils.chunks import chunk_text
+from querylytics.shared.infrastructure.agent.base import Agent, AgentConfig
+from querylytics.shared.infrastructure.vector_store.base import VectorStore, VectorStoreConfig
+from querylytics.shared.infrastructure.vector_store.chromadb import ChromaDB, ChromaDBConfig
+from querylytics.shared.infrastructure.embedding_models.models import OpenAIEmbeddingsConfig
+from querylytics.shared.infrastructure.utils.chunks import chunk_text
 import logging
 
 logger = logging.getLogger(__name__)

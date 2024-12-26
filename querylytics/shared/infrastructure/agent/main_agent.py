@@ -3,11 +3,11 @@ from typing import Optional
 import logging
 
 
-from .base import Agent, AgentConfig, AgentState
-from .special.retrieval_agent import RetrievalAgent, RetrievalAgentConfig
-from .special.probing_agent import ProbingAgent, ProbingAgentConfig
-from .special.notification_agent import NotificationAgent, NotificationAgentConfig
-from .task import Task
+from querylytics.shared.infrastructure.agent.base import Agent, AgentConfig, AgentState
+from querylytics.shared.infrastructure.agent.special.retrieval_agent import RetrievalAgent, RetrievalAgentConfig
+from querylytics.shared.infrastructure.agent.special.probing_agent import ProbingAgent, ProbingAgentConfig
+from querylytics.shared.infrastructure.agent.special.notification_agent import NotificationAgent, NotificationAgentConfig
+from querylytics.shared.infrastructure.agent.task import Task
 
 
 
@@ -127,12 +127,10 @@ class MainAgent(Agent):
         
         try:
             if query_type == "general_chat":
-                # Use direct LLM response for simple queries
                 answer = self._handle_general_chat(query)
                 answer = answer.get("message")
-                return answer  # Return directly without asking for feedback
+                return answer 
             else:
-                # Use retrieval for information-seeking queries
                 self.transition_to(AgentState.RETRIEVING)
                 retrieval_task = self._create_retrieval_task()
                 answer = retrieval_task.run(query)
@@ -149,7 +147,6 @@ class MainAgent(Agent):
 
     def _classify_query(self, query: str) -> str:
         """Classify the type of query to determine appropriate handling"""
-        # Simple classification prompt for the LLM
         classification_prompt = f"""
         Classify the following query as either 'general_chat' or 'needs_retrieval':
         Query: {query}
@@ -176,7 +173,6 @@ class MainAgent(Agent):
         logger.info(f"Handling feedback: {feedback}")
         feedback = feedback.lower().strip()
         
-        # Define semantic feedback options
         FEEDBACK_SATISFIED = {"yes", "good", "correct", "perfect", "thanks"}
         FEEDBACK_UNSATISFIED = {"no", "wrong", "incorrect", "bad", "not helpful"}
         
@@ -188,10 +184,8 @@ class MainAgent(Agent):
         elif feedback in FEEDBACK_UNSATISFIED:
             logger.info("Starting probing session for unsatisfied feedback")
             
-            # Record feedback for analytics
             self.context.feedback_type = "unsatisfied"
             
-            # Start interactive probing session
             probing_task = self._create_probe_task()
             probe_args = {
                 "query": self.context.current_query,
@@ -230,17 +224,16 @@ class MainAgent(Agent):
             single_round=True,
             max_steps=3
         )
-        # Ensure retrieval agent starts in correct state
         self.retrieval_agent.transition_to(AgentState.IDLE)
         return task
 
     def _create_probe_task(self) -> Task:
         """Create a probing task"""
         return Task(
-            agent=self.probing_agent,  # Use the pre-initialized probing agent
+            agent=self.probing_agent,
             name="probing_task",
             single_round=False,
-            max_steps=self.config.max_probe_attempts  # Add max steps limit
+            max_steps=self.config.max_probe_attempts
         )
 
     def _create_notification_task(self) -> Task:

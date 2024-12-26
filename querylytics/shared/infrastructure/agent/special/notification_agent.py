@@ -1,6 +1,6 @@
-from shared.infrastructure.agent.base import Agent, AgentConfig
-from shared.infrastructure.tools.slack_tool import SlackTool
-from shared.infrastructure.tools.mongodb_tool import MongoDBTool
+from querylytics.shared.infrastructure.agent.base import Agent, AgentConfig
+from querylytics.shared.infrastructure.tools.slack_tool import SlackTool
+from querylytics.shared.infrastructure.tools.mongodb_tool import MongoDBTool
 from pydantic import BaseModel
 from typing import Optional
 import logging

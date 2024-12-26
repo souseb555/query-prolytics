@@ -1,9 +1,9 @@
 import logging
 import chromadb
 from typing import List, Tuple, Sequence
-from shared.infrastructure.vector_store.base import VectorStore, VectorStoreConfig, Document
-from shared.infrastructure.embedding_models.base import EmbeddingModelsConfig
-from shared.infrastructure.embedding_models.models import OpenAIEmbeddingsConfig
+from querylytics.shared.infrastructure.vector_store.base import VectorStore, VectorStoreConfig, Document
+from querylytics.shared.infrastructure.embedding_models.base import EmbeddingModelsConfig
+from querylytics.shared.infrastructure.embedding_models.models import OpenAIEmbeddingsConfig
 
 logger = logging.getLogger(__name__)
 

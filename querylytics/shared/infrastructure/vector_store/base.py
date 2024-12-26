@@ -1,4 +1,4 @@
-from shared.infrastructure.pydantic_v1 import BaseSettings
+from querylytics.shared.infrastructure.pydantic_v1 import BaseSettings
 from abc import ABC
 
 
@@ -6,8 +6,8 @@ import logging
 from abc import ABC, abstractmethod
 from typing import List, Optional, Tuple, Sequence
 
-from shared.infrastructure.embedding_models.models import OpenAIEmbeddingsConfig
-from shared.infrastructure.embedding_models.base import EmbeddingModelsConfig
+from querylytics.shared.infrastructure.embedding_models.models import OpenAIEmbeddingsConfig
+from querylytics.shared.infrastructure.embedding_models.base import EmbeddingModelsConfig
 
 
 logger = logging.getLogger(__name__)

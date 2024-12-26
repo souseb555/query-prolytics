@@ -1,8 +1,8 @@
 from typing import List, Dict, Any, Optional
-from shared.infrastructure.agent.base import Agent, AgentConfig, AgentState
-from shared.infrastructure.agent.tool_message import ToolMessage
-from shared.infrastructure.language_models.openai_gpt import OpenAIGPTConfig, OpenAIChatModel
-from shared.infrastructure.agent.special.doc_chat_agent import DocChatAgentConfig, DocChatAgent
+from querylytics.shared.infrastructure.agent.base import Agent, AgentConfig, AgentState
+from querylytics.shared.infrastructure.agent.tool_message import ToolMessage
+from querylytics.shared.infrastructure.language_models.openai_gpt import OpenAIGPTConfig, OpenAIChatModel
+from querylytics.shared.infrastructure.agent.special.doc_chat_agent import DocChatAgentConfig, DocChatAgent
 import logging
 import requests
 import asyncio

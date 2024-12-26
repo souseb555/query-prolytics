@@ -1,7 +1,7 @@
 from typing import List, Optional
 from datetime import datetime
 import logging
-from shared.infrastructure.agent.base import AgentState
+from querylytics.shared.infrastructure.agent.base import AgentState
 
 logger = logging.getLogger(__name__)
 
