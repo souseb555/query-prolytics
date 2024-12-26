@@ -1,5 +1,5 @@
-from shared.infrastructure.agent.base import Agent, AgentConfig, AgentState
-from shared.infrastructure.language_models.openai_gpt import OpenAIGPTConfig, OpenAIChatModel
+from querylytics.shared.infrastructure.agent.base import Agent, AgentConfig, AgentState
+from querylytics.shared.infrastructure.language_models.openai_gpt import OpenAIGPTConfig, OpenAIChatModel
 from typing import List, Optional
 from pydantic import BaseModel
 import logging
@@ -41,43 +41,49 @@ class ProbingAgent(Agent):
                 self.collected_responses.append((f"response_{self.question_count}", message))
 
             # Generate next question or summary based on question count
-            if self.question_count == 0:
+            if self.question_count < 3:
                 self.question_count += 1
-                self.current_question = "What specifically was unsatisfactory about the answer provided?"
+                self.current_question = self._generate_question(
+                    question_number=self.question_count,
+                    previous_responses=self.collected_responses
+                )
                 return self.current_question
-                
-            elif self.question_count == 1:
-                self.question_count += 1
-                self.current_question = self._generate_follow_up(message)
-                return self.current_question
-                
-            elif self.question_count == 2:
-                self.question_count += 1
-                self.current_question = "Just to confirm - what's the most important change that would have made the answer satisfactory?"
-                return self.current_question
-                
-            elif self.question_count == 3:
-                # Generate and return summary after collecting all responses
-                summary = self._generate_summary()
-                self.question_count = 0  # Reset for next session
-                self.current_question = None
-                return summary
+            
+            # Generate and return summary after collecting all responses
+            summary = self._generate_summary()
+            self.question_count = 0  # Reset for next session
+            self.current_question = None
+            return summary
 
         except Exception as e:
             logger.error(f"Error in probing: {str(e)}")
             return {"feedback_type": "error", "findings": str(e)}
 
-    def _generate_follow_up(self, initial_response: str) -> str:
+    def _generate_question(self, question_number: int, previous_responses: List) -> str:
+        """Generate contextual questions based on conversation progress."""
+        context = "\n".join([f"{type}: {response}" for type, response in previous_responses])
+        
         prompt = f"""
-        Based on this user feedback: "{initial_response}"
-        Generate a specific follow-up question to better understand what improvement is needed.
-        The question should be focused on getting actionable feedback.
+        You are conducting a probing session to understand user dissatisfaction with a previous answer.
+        This is question {question_number} out of 3.
+        
+        Previous responses:
+        {context if previous_responses else "No previous responses"}
+        
+        Generate a clear, focused question that:
+        - For first question: Identifies the core issue with the previous answer
+        - For follow-up questions: Builds on previous responses to get more specific details
+        - For final question: Confirms the most important improvements needed
+        
+        Provide only the question text without any additional context or explanation.
         """
+
         try:
             response = self.llm.generate(prompt)
-            return response.get('content', "What specific improvements would you like to see?")
+            print(response)
+            return response.get('message')
         except Exception as e:
-            logger.error(f"Failed to generate follow-up: {str(e)}")
+            logger.error(f"Failed to generate question: {str(e)}")
             return "What specific improvements would you like to see?"
 
     def _generate_summary(self) -> dict:

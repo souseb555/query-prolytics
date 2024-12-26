@@ -4,7 +4,7 @@ import os
 from typing import Optional, Dict, List, Union
 from enum import Enum
 
-from shared.infrastructure.language_models.config.base import LLMConfig, LanguageModel
+from querylytics.shared.infrastructure.language_models.config.base import LLMConfig, LanguageModel
 from openai import OpenAI, OpenAIError
 
 # Set up logging

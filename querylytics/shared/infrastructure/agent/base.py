@@ -6,10 +6,10 @@ from enum import Enum
 from dataclasses import dataclass, field
 from colorama import Fore, Style, init
 
-from shared.infrastructure.language_models.config.base import LLMConfig, LanguageModel
-from shared.infrastructure.language_models.openai_gpt import OpenAIGPTConfig
-from shared.infrastructure.vector_store.base import VectorStoreConfig, VectorStore
-from shared.infrastructure.agent.tool_message import ToolMessage
+from querylytics.shared.infrastructure.language_models.config.base import LLMConfig, LanguageModel
+from querylytics.shared.infrastructure.language_models.openai_gpt import OpenAIGPTConfig
+from querylytics.shared.infrastructure.vector_store.base import VectorStoreConfig, VectorStore
+from querylytics.shared.infrastructure.agent.tool_message import ToolMessage
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

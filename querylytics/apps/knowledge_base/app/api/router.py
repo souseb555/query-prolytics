@@ -1,8 +1,6 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
-from typing import List, Dict
-from pydantic import BaseModel
-from shared.infrastructure.agent.special.doc_chat_agent import DocChatAgent, DocChatAgentConfig
-from shared.models.document import Document, SearchRequest, SearchResponse
+from fastapi import APIRouter, HTTPException
+from querylytics.shared.infrastructure.agent.special.doc_chat_agent import DocChatAgent, DocChatAgentConfig
+from querylytics.apps.knowledge_base.app.models.schemas import Document
 
 kb_router = APIRouter()
 
@@ -15,19 +13,6 @@ doc_chat_config = DocChatAgentConfig(
 )
 doc_chat_agent = DocChatAgent(doc_chat_config)
 
-@kb_router.post("/documents")
-async def upload_document(file: UploadFile = File(...)):
-    try:
-        content = await file.read()
-        # Convert bytes to string
-        text_content = content.decode('utf-8')
-        
-        # Ingest document into vector store
-        doc_chat_agent.ingest_documents([text_content])
-        
-        return {"filename": file.filename, "status": "processed"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @kb_router.get("/search")
 async def search_documents():

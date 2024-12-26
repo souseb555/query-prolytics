@@ -1,7 +1,14 @@
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+root_dir = Path(__file__).parent.parent
+sys.path.append(str(root_dir))
+
 import logging
-from shared.infrastructure.agent.main_agent import MainAgent, MainAgentConfig
-from shared.infrastructure.agent.special.retrieval_agent import RetrievalAgentConfig
-from shared.infrastructure.language_models.openai_gpt import OpenAIGPTConfig
+from querylytics.shared.infrastructure.agent.main_agent import MainAgent, MainAgentConfig
+from querylytics.shared.infrastructure.agent.special.retrieval_agent import RetrievalAgentConfig
+from querylytics.shared.infrastructure.language_models.openai_gpt import OpenAIGPTConfig
 
 # Set up logging
 logging.basicConfig(
