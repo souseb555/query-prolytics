@@ -16,7 +16,6 @@ class NotificationAgentConfig(AgentConfig):
     mongodb_username: Optional[str] = getenv('MONGODB_USERNAME')
     mongodb_password: Optional[str] = getenv('MONGODB_PASSWORD')
     mongodb_cluster_url: str = getenv('MONGODB_CLUSTER_URL', 'localhost:27017')
-    print("mongodb_cluster_url", mongodb_cluster_url)
     mongodb_database: str = getenv('MONGODB_DATABASE', 'querylytics')
     mongodb_collection: str = getenv('MONGODB_COLLECTION', 'feedback')
 
@@ -102,16 +101,21 @@ class NotificationAgent(Agent):
             "*Summary of Findings:*",
             findings,
             "",
-            "*Detailed Responses:*"
+            "*Q&A Session:*"
         ]
         
+        # Format the Q&A pairs
         if responses:
-            try:
-                for response_type, response in responses:
-                    message.append(f"• *{str(response_type)}:* {str(response)}")
-            except (TypeError, ValueError):
-                message.append("Invalid response format")
+            for qa in responses:
+                try:
+                    question = qa.get('question', 'No question')
+                    answer = qa.get('answer', 'No answer')
+                    message.append(f"*Q:* {question}")
+                    message.append(f"*A:* {answer}\n")
+                except Exception as e:
+                    logger.error(f"Error formatting QA pair: {e}")
+                    message.append("Error formatting response")
         else:
-            message.append("No detailed responses available")
+            message.append("No responses available")
         
         return "\n".join(message) 

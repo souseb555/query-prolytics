@@ -16,9 +16,9 @@ logger.setLevel(logging.INFO)
 
 class VectorStoreConfig(BaseSettings):
     
-    collection_name: str | None = "temp"
-    replace_collection: bool = False  # replace collection if it already exists
-    storage_path: str = ".chroma/data"
+    collection_name: str = "reports-store"
+    replace_collection: bool = False
+    storage_path: str = "chromadb/reports/"
     embedding: EmbeddingModelsConfig = OpenAIEmbeddingsConfig()
     batch_size: int = 200
     timeout: int = 60
@@ -42,13 +42,19 @@ class VectorStore(ABC):
     @staticmethod
     def create(config: VectorStoreConfig) -> Optional["VectorStore"]:
         """Factory method to create a VectorStore instance."""
-        from shared.infrastructure.vector_store.chromadb import ChromaDB, ChromaDBConfig
+        from querylytics.shared.infrastructure.vector_store.chromadb import ChromaDB, ChromaDBConfig
         if isinstance(config, ChromaDBConfig):
             return ChromaDB(config)
 
     @abstractmethod
-    def add_documents(self, documents: Sequence[Document]) -> None:
-        """Add documents to the vector store."""
+    def add_documents(self, documents: List[str], metadatas: List[dict], ids: List[str]) -> None:
+        """Add documents to the vector store.
+        
+        Args:
+            documents: List of document contents
+            metadatas: List of metadata dictionaries
+            ids: List of unique identifiers
+        """
         pass
 
     @abstractmethod

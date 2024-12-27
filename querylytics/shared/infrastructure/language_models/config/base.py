@@ -29,7 +29,7 @@ class LanguageModel(ABC):
         Returns:
             An instance of a specific LanguageModel subclass or None.
         """
-        from shared.infrastructure.language_models.openai_gpt import OpenAIGPT
+        from querylytics.shared.infrastructure.language_models.openai_gpt import OpenAIGPT
         if config is None:
             return None
 
