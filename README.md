@@ -22,20 +22,20 @@ querylytics/
 │   └── knowledge_base/
 │       └── app/
 │           ├── api/
-│           │   └── router.py # FastAPI routes for KB operations
+│           │   └── router.py  # FastAPI routes for KB operations
 │           └── models/
 ├── shared/
 │   └── infrastructure/
-│       ├── agent/ # Agent framework
-│       │   ├── base.py # Base agent implementation
-│       │   ├── main_agent.py # Main orchestration agent
-│       │   └── special/ # Specialized agents
-│       ├── embedding_models/ # Embedding implementations
-│       ├── language_models/ # LLM implementations
-│       ├── tools/ # Utility tools
-│       └── vector_store/ # Vector storage implementations
-├── main.py # Application entry point
-└── run.py # FastAPI server runner
+│       ├── agent/             # Agent framework
+│       │   ├── base.py        # Base agent implementation
+│       │   ├── main_agent.py  # Main orchestration agent
+│       │   └── special/       # Specialized agents
+│       ├── embedding_models/  # Embedding implementations
+│       ├── language_models/   # LLM implementations
+│       ├── tools/             # Utility tools
+│       └── vector_store/      # Vector storage implementations
+├── main.py                    # Application entry point
+└── run.py                     # FastAPI server runner
 ```
 
 ## 🚀 Getting Started
@@ -52,43 +52,43 @@ querylytics/
 1. Clone the repository:
 
    ```bash
-git clone https://github.com/yourusername/querylytics.git
-cd querylytics
-```
+   git clone https://github.com/yourusername/querylytics.git
+   cd querylytics
+   ```
 
 2. Create and activate a virtual environment:
 
    ```bash
-python -m venv querylytics_env
-source querylytics_env/bin/activate # Linux/Mac
-```
+   python -m venv querylytics_env
+   source querylytics_env/bin/activate  # Linux/Mac
+   ```
 
 3. Install dependencies:
 
    ```bash
-pip install -r requirements.txt
-```
+   pip install -r requirements.txt
+   ```
 
 4. Set up environment variables:
 
    ```bash
-export MONGODB_URI=your_mongodb_uri
-export OPENAI_API_KEY=your_openai_api_key
-```
+   export MONGODB_URI=your_mongodb_uri
+   export OPENAI_API_KEY=your_openai_api_key
+   ```
 
 ### Running the Application
 
 1. Start the FastAPI server:
 
    ```bash
-python run.py
-```
+   python run.py
+   ```
 
 2. Run the main application:
 
    ```bash
-python main.py
-```
+   python main.py
+   ```
 
 ## 🔧 Configuration
 
@@ -186,9 +186,9 @@ Run tests with:
 
 ```bash
 python -m pytest tests/
+```
 
-
-## 🤝 Contributing
+## 🧑‍💻 Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -196,7 +196,7 @@ python -m pytest tests/
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
+## 🖋️ License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
