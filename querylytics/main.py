@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from colorama import init, Fore, Style
 
 # Add project root to Python path
 root_dir = Path(__file__).parent.parent
@@ -17,6 +18,9 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+# Initialize colorama
+init()
 
 def main():
     try:
@@ -38,17 +42,17 @@ def main():
         )
         agent = MainAgent(config)
         
-        print("\n=== QueryLytics Demo ===")
-        print("QueryLytics: How can I help you? (type 'exit' to quit)")
+        print(f"\n{Fore.CYAN}=== QueryLytics CSM Analytics ==={Style.RESET_ALL}")
+        print(f"{Fore.GREEN}Ready to analyze your customer success data. How can I help? (type 'exit' to quit){Style.RESET_ALL}")
         
         while True:
-            user_input = input("\nYou: ").strip()
+            user_input = input(f"\n{Fore.YELLOW}You: {Style.RESET_ALL}").strip()
             if user_input.lower() == 'exit':
-                print("QueryLytics: Goodbye!")
+                print(f"{Fore.GREEN}QueryLytics: Goodbye!{Style.RESET_ALL}")
                 break
                 
             response = agent.handle_message(user_input)
-            print(f"QueryLytics: {response}")
+            print(f"{Fore.GREEN}QueryLytics: {response}{Style.RESET_ALL}")
             print(f"[Debug] Current State: {agent.state}")
 
     except Exception as e:

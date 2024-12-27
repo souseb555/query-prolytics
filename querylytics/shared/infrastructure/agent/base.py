@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 init(autoreset=True)  # Initialize colorama
 
-class AgentState(Enum):
+class AgentState(str, Enum):
     """Agent states as an Enum"""
     IDLE = "idle"
     PROCESSING = "processing"
@@ -26,6 +26,7 @@ class AgentState(Enum):
     RETRIEVING = "retrieving"
     WAITING_FEEDBACK = "waiting_feedback"
     PROBING = "probing"
+    NOTIFYING = "notifying"
 
 @dataclass
 class AgentContext:

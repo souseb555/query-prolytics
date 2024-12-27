@@ -4,7 +4,7 @@ from querylytics.shared.infrastructure.tools.mongodb_tool import MongoDBTool
 from pydantic import BaseModel
 from typing import Optional
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from os import getenv
 
 logger = logging.getLogger(__name__)
@@ -13,23 +13,27 @@ class NotificationAgentConfig(AgentConfig):
     """Configuration for NotificationAgent"""
     slack_webhook_url: Optional[str] = getenv('SLACK_WEBHOOK_URL')
     slack_channel: str = getenv('SLACK_CHANNEL', '#feedback-alerts')
-    mongodb_uri: str = getenv('MONGODB_URI', 'mongodb://localhost:27017')
-    mongodb_db: str = getenv('MONGODB_DB', 'querylytics')
+    mongodb_username: Optional[str] = getenv('MONGODB_USERNAME')
+    mongodb_password: Optional[str] = getenv('MONGODB_PASSWORD')
+    mongodb_cluster_url: str = getenv('MONGODB_CLUSTER_URL', 'localhost:27017')
+    print("mongodb_cluster_url", mongodb_cluster_url)
+    mongodb_database: str = getenv('MONGODB_DATABASE', 'querylytics')
     mongodb_collection: str = getenv('MONGODB_COLLECTION', 'feedback')
 
 class NotificationAgent(Agent):
     def __init__(self, config: NotificationAgentConfig):
         super().__init__(config)
         
-        # Initialize tools
         self.slack_tool = SlackTool(
             webhook_url=config.slack_webhook_url,
             default_channel=config.slack_channel
         )
         
         self.mongodb_tool = MongoDBTool(
-            uri=config.mongodb_uri,
-            database=config.mongodb_db,
+            username=config.mongodb_username,
+            password=config.mongodb_password,
+            cluster_url=config.mongodb_cluster_url,
+            database=config.mongodb_database,
             collection=config.mongodb_collection
         )
 
@@ -39,15 +43,15 @@ class NotificationAgent(Agent):
         1. Store feedback in MongoDB
         2. Send Slack notification for important feedback
         """
+        logger.info("Starting handle_message with input: %s", message)
         try:
-            # Extract data from message
             feedback_type = message.get("feedback_type")
             original_query = message.get("original_query")
             probe_summary = message.get("probe_summary", {})
             
             # Prepare document for MongoDB
             feedback_document = {
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(timezone.utc),
                 "feedback_type": feedback_type,
                 "original_query": original_query,
                 "findings": probe_summary.get("findings"),
@@ -55,14 +59,16 @@ class NotificationAgent(Agent):
                 "status": "new"
             }
             
-            # Store in MongoDB
-            try:
-                result = self.mongodb_tool.insert_document(feedback_document)
-                logger.info(f"Stored feedback in MongoDB with ID: {result.inserted_id}")
-            except Exception as e:
-                logger.error(f"Failed to store feedback in MongoDB: {str(e)}")
+            logger.info("Prepared feedback document: %s", feedback_document)
             
-            # Prepare and send Slack notification
+            try:
+                logger.info("Attempting to insert into MongoDB...")
+                result = self.mongodb_tool.insert_document(feedback_document)
+                logger.info(f"Successfully stored feedback in MongoDB with ID: {result.inserted_id}")
+            except Exception as e:
+                logger.error(f"Failed to store feedback in MongoDB: {str(e)}", exc_info=True)
+                raise
+            
             slack_message = self._format_slack_message(feedback_document)
             try:
                 self.slack_tool.send_message(
@@ -81,7 +87,7 @@ class NotificationAgent(Agent):
 
     def _format_slack_message(self, feedback: dict) -> str:
         """Format feedback data for Slack notification"""
-        # Add default values and handle None cases with explicit string conversion
+
         findings = str(feedback.get("findings", "No findings available"))
         responses = feedback.get("responses", [])
         query = str(feedback.get("original_query", "N/A"))
@@ -94,12 +100,11 @@ class NotificationAgent(Agent):
             f"*Type:* {feedback_type}",
             "",
             "*Summary of Findings:*",
-            findings,  # Already converted to string above
+            findings,
             "",
             "*Detailed Responses:*"
         ]
         
-        # Add responses if available
         if responses:
             try:
                 for response_type, response in responses:
