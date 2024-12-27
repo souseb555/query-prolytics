@@ -71,7 +71,6 @@ class OpenAIEmbeddings(EmbeddingModel):
         def compute_embeddings(texts: List[str]) -> List[List[float]]:
             # Truncate texts to the model's maximum context length
             tokenized_texts = self.truncate_texts(texts)
-            print(tokenized_texts)
             embeddings = []
 
             # Process texts in batches
@@ -83,7 +82,6 @@ class OpenAIEmbeddings(EmbeddingModel):
                         response = self.client.embeddings.create(
                             input=batch, model=self.config.model_name
                         )
-                        print("response", response)
                         batch_embeddings = [data["embedding"] for data in response["data"]]
                         embeddings.extend(batch_embeddings)
                         break 

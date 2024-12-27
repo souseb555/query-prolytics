@@ -113,11 +113,9 @@ class Agent(ABC):
         if self.state != AgentState.IDLE:
             logger.warning("Registering tool while not IDLE")
         
-        # Get the request type with better error handling
         try:
             tool_name = tool_class.default_value("request")
             if not tool_name:
-                # Fallback to class name if request is empty
                 tool_name = tool_class.__name__.lower()
                 logger.warning(f"Tool {tool_class.__name__} has no request value, using class name")
         except Exception as e:
@@ -182,9 +180,7 @@ class Agent(ABC):
                 
             tool_context = self.get_tool_context()
             augmented_message = f"{message}\n\nAvailable tools:\n{tool_context}"
-            print("augmented message", augmented_message)
             llm_result = self.llm.generate(augmented_message)
-            print("llm result", llm_result)
             if not llm_result:
                 logger.warning("No response from LLM")
                 return "Failed to get LLM response"

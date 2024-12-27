@@ -93,9 +93,12 @@ class RetrievalAgent(Agent):
     def vectorsearchtool(self, tool: VectorSearchTool) -> str:
         """Execute vector store search using DocChat agent"""
         if not self.doc_chat_agent:
-            return "DocChat agent not configured"
-            
-        result = self.doc_chat_agent.search(tool.query)
+            return "DocChat agent not configured" 
+        # Check if documents have been ingested
+        stats = self.doc_chat_agent.inspect_database()
+        if stats['total_documents'] == 0:
+            return "No documents have been ingested into the vector store"
+        result = self.doc_chat_agent.handle_message(tool.query)
         return result
 
     def apisearchtool(self, tool: APISearchTool) -> str:
@@ -215,13 +218,10 @@ class RetrievalAgent(Agent):
                 "vector_search": self._process_result(results[0], "vector_search"),
                 "api_search": self._process_result(results[1], "api_search")
             }
-            print("structured_results", structured_results)
 
             # Step 3: Ask LLM to evaluate and select the most relevant information
             selection_prompt = self._create_selection_prompt(message, structured_results)
-            print("selection_prompt", selection_prompt)
             selection_result = self.llm.generate(selection_prompt)
-            print("selection_result", selection_result)
             if not selection_result:
                 return "Failed to evaluate search results."
             

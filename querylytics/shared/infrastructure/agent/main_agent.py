@@ -7,7 +7,6 @@ from querylytics.shared.infrastructure.agent.base import Agent, AgentConfig, Age
 from querylytics.shared.infrastructure.agent.special.retrieval_agent import RetrievalAgent, RetrievalAgentConfig
 from querylytics.shared.infrastructure.agent.special.probing_agent import ProbingAgent, ProbingAgentConfig
 from querylytics.shared.infrastructure.agent.special.notification_agent import NotificationAgent, NotificationAgentConfig
-from querylytics.shared.infrastructure.agent.task import Task
 
 
 
@@ -80,7 +79,6 @@ class MainAgent(Agent):
                 return self._handle_feedback(message)
                 
             elif self.state == AgentState.PROBING:
-        # Direct handling of probing responses
                 response = self.probing_agent.handle_message(message)
                 
                 # If we get a dict back, probing is complete
@@ -91,10 +89,10 @@ class MainAgent(Agent):
                 
                 # Otherwise, continue with next question
                 return response
-            elif self.state == AgentState.NOTIFYING:
-                self.transition_to(AgentState.DONE)
-                self._reset()
-                return "Thank you for your feedback. I'll use it to improve future responses."
+            # elif self.state == AgentState.NOTIFYING:
+            #     self.transition_to(AgentState.DONE)
+            #     self._reset()
+            #     return "Thank you for your feedback. I'll use it to improve future responses."
 
             elif self.state == AgentState.ERROR:
                 self.transition_to(AgentState.IDLE)
@@ -202,6 +200,8 @@ class MainAgent(Agent):
                 "original_query": self.context.current_query,
                 "probe_summary": self.context.probe_results
             })
+            self.transition_to(AgentState.DONE)
+            self._reset()
             return "Thank you for your feedback. I'll use it to improve future responses."
         except Exception as e:
             logger.error(f"Error in notification: {str(e)}")
