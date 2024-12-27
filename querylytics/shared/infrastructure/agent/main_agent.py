@@ -80,29 +80,22 @@ class MainAgent(Agent):
                 return self._handle_feedback(message)
                 
             elif self.state == AgentState.PROBING:
-                try:
-                    probing_task = self._create_probe_task()
-                    next_question = probing_task.run(message)
-                    
-                    if isinstance(next_question, dict):
-                        notification_task = self._create_notification_task()
-                        notification_task.run({
-                            "feedback_type": self.context.feedback_type,
-                            "original_query": self.context.current_query,
-                            "probe_summary": next_question
-                        })
-                        
-                        self.transition_to(AgentState.DONE)
-                        self._reset()
-                        return "Thank you for your feedback. I'll use it to improve future responses."
-                    
-                    return next_question
-                    
-                except Exception as e:
-                    logger.error(f"Error in probing session: {str(e)}")
-                    self.transition_to(AgentState.ERROR)
-                    return f"Error during feedback session: {str(e)}"
+        # Direct handling of probing responses
+                response = self.probing_agent.handle_message(message)
                 
+                # If we get a dict back, probing is complete
+                if isinstance(response, dict):
+                    self.context.probe_results = response
+                    self.transition_to(AgentState.NOTIFYING)
+                    return self._handle_notification()
+                
+                # Otherwise, continue with next question
+                return response
+            elif self.state == AgentState.NOTIFYING:
+                self.transition_to(AgentState.DONE)
+                self._reset()
+                return "Thank you for your feedback. I'll use it to improve future responses."
+
             elif self.state == AgentState.ERROR:
                 self.transition_to(AgentState.IDLE)
                 return "Error occurred. Please try your question again."
@@ -121,7 +114,6 @@ class MainAgent(Agent):
         logger.debug(f"Handling new query: {query}")
         self.context.current_query = query
         
-        # First, determine query type
         query_type = self._classify_query(query)
         logger.debug(f"Query classified as: {query_type}")
         
@@ -132,8 +124,7 @@ class MainAgent(Agent):
                 return answer 
             else:
                 self.transition_to(AgentState.RETRIEVING)
-                retrieval_task = self._create_retrieval_task()
-                answer = retrieval_task.run(query)
+                answer = self.retrieval_agent.handle_message(query)
             
             logger.debug(f"Got answer: {answer}...")
             self.context.current_answer = answer
@@ -186,24 +177,11 @@ class MainAgent(Agent):
             
             self.context.feedback_type = "unsatisfied"
             
-            probing_task = self._create_probe_task()
-            probe_args = {
-                "query": self.context.current_query,
-                "previous_answer": self.context.current_answer
-            }
-            
-            # Get first question directly
-            self.context.probe_session = probing_task.run(probe_args)
-            first_question = self.context.probe_session
-            
-            logger.debug(f"First probing question: {first_question}")
+            self.probing_agent = ProbingAgent(self.probing_config)
             self.transition_to(AgentState.PROBING)
             
-            if first_question is None:
-                logger.error("Probing agent returned None for first question")
-                return "I apologize, but I'm having trouble starting the feedback session. Could you try again?"
-                
-            return first_question
+            # Start probing with initial feedback
+            return self.probing_agent.handle_message(feedback)
             
         else:
             return "Please indicate if you're satisfied with the answer. You can say things like 'yes', 'no', 'good', or 'not helpful'."
@@ -215,31 +193,17 @@ class MainAgent(Agent):
         self.context.current_answer = None
         self.context.probe_count = 0
 
-    def _create_retrieval_task(self) -> Task:
-        """Create a task for retrieval"""
-        logger.debug("Creating retrieval task")
-        task = Task(
-            agent=self.retrieval_agent,
-            name="retrieval_task",
-            single_round=True,
-            max_steps=3
-        )
-        self.retrieval_agent.transition_to(AgentState.IDLE)
-        return task
-
-    def _create_probe_task(self) -> Task:
-        """Create a probing task"""
-        return Task(
-            agent=self.probing_agent,
-            name="probing_task",
-            single_round=False,
-            max_steps=self.config.max_probe_attempts
-        )
-
-    def _create_notification_task(self) -> Task:
-        """Create a notification task"""
-        return Task(
-            agent=NotificationAgent(self.notification_config),
-            name="notification_task",
-            single_round=True
-        ) 
+    def _handle_notification(self) -> str:
+        """Handle notification after probing is complete"""
+        try:
+            notification_agent = NotificationAgent(self.notification_config)
+            notification_agent.handle_message({
+                "feedback_type": self.context.feedback_type,
+                "original_query": self.context.current_query,
+                "probe_summary": self.context.probe_results
+            })
+            return "Thank you for your feedback. I'll use it to improve future responses."
+        except Exception as e:
+            logger.error(f"Error in notification: {str(e)}")
+            self.transition_to(AgentState.ERROR)
+            return f"Error processing feedback: {str(e)}" 

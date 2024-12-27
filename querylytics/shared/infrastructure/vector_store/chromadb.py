@@ -4,6 +4,7 @@ from typing import List, Tuple, Sequence
 from querylytics.shared.infrastructure.vector_store.base import VectorStore, VectorStoreConfig, Document
 from querylytics.shared.infrastructure.embedding_models.base import EmbeddingModelsConfig
 from querylytics.shared.infrastructure.embedding_models.models import OpenAIEmbeddingsConfig
+from chromadb.config import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +20,10 @@ class ChromaDB(VectorStore):
 
     def __init__(self, config: ChromaDBConfig):
         super().__init__(config)
-        self.client = chromadb.Client(
-            chromadb.config.Settings(
-                # chroma_db_impl="duckdb+parquet",
-                persist_directory=config.storage_path,
+        self.client = chromadb.PersistentClient(
+            settings=Settings(
+                chroma_db_impl="duckdb+parquet",
+                persist_directory=config.storage_path
             )
         )
 

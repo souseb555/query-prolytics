@@ -30,24 +30,15 @@ class Task:
     def run(self, initial_message: str) -> str:
         try:
             self.pending_message = initial_message
+            print("pending_message", self.pending_message)
             response = None
             generator = None
-            
+            print("self.is_done()", self.is_done())
+            print("self.step_count", self.step_count)
+            print("self.max_steps", self.max_steps)
             while not self.is_done() and self.step_count < self.max_steps:
                 response = self.step()
-                
-                # Handle generator responses (for interactive sessions like probing)
-                if hasattr(response, '__iter__') and hasattr(response, 'send'):
-                    generator = response
-                    try:
-                        # Get first question
-                        response = next(generator)
-                        # Return the generator and first response for the caller to handle
-                        return generator
-                    except StopIteration as e:
-                        response = e.value
-                        break
-                
+                print("response", response)
                 if response is None:
                     break
                     
@@ -90,6 +81,7 @@ class Task:
 
     def is_done(self) -> bool:
         """Check if task is complete"""
+        print("self.agent.state", self.agent.state)
         return self.agent.state in [AgentState.DONE, AgentState.ERROR]
 
     def reset(self) -> None:
